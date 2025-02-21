@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheatsheet Download</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+      
+        @font-face {
+      font-family: 'Ted Next';
+      src: url('https://raw.githubusercontent.com/rogersrepaccess/devis/main/fonts/TedNext-Regular.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+      
+        body {
+            font-family: Ted Next;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+          font-family: Ted Next;
+          margin-top: 50px;
+          font-weight: bold;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #file-list {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            display: block;
+            margin-top: 20px;
+        }
+        p {
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cheatsheet Download</h1>
+    <div id="file-list">Chargement des fichiers...</div>
+    <button onclick="downloadAllPNGs()">Télécharger tous les PNG</button>
+
+    <script>
+        const FOLDER_ID = "1gp3vToEuBwP9afTZWY3IUkIQEVyYTUGA";
+        const API_KEY = "AIzaSyDvEVGWGcjjqW8-uiCUpMQ4wc1ysYDxRRU";
+        let pdfFiles = [];
+
+        async function fetchPDFs() {
+            const url = `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents+and+mimeType='application/pdf'&key=${API_KEY}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.files) {
+                pdfFiles = data.files;
+                displayFiles(data.files);
+            } else {
+                document.getElementById("file-list").innerText = "Aucun fichier trouvé.";
+            }
+        }
+
+        function displayFiles(files) {
+            const fileList = document.getElementById("file-list");
+            fileList.innerHTML = files.map(file => `<p>${file.name}</p>`).join('');
+        }
+
+        async function convertToPNG(fileId, fileName) {
+            const pdfUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${API_KEY}`;
+            const response = await fetch(pdfUrl);
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+            const loadingTask = pdfjsLib.getDocument(url);
+            const pdf = await loadingTask.promise;
+            const page = await pdf.getPage(1);
+            const scale = 2;
+            const viewport = page.getViewport({ scale });
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+            await page.render(renderContext).promise;
+
+            const pngUrl = canvas.toDataURL("image/png");
+            const a = document.createElement("a");
+            a.href = pngUrl;
+            a.download = fileName.replace(/\.pdf$/, "") + ".png";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        async function downloadAllPNGs() {
+            for (const file of pdfFiles) {
+                await convertToPNG(file.id, file.name);
+            }
+        }
+
+        fetchPDFs();
+    </script>
+</body>
+</html>
