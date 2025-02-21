@@ -6,7 +6,7 @@
     <title>Rogers Cheatsheet</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-  <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="icon" href="favicon.png" type="image/png">
     <style>
         @font-face {
             font-family: 'Ted Next';
@@ -27,13 +27,13 @@
         }
         h4 {
             font-weight: normal;
-          margin-bottom: 10px;
+            margin-bottom: 10px;
         }
         #mobius {
             width: 100px;
-          height: 100px;
-          margin-top: 30px;
-          margin-bottom: 10px;
+            height: 100px;
+            margin-top: 30px;
+            margin-bottom: 10px;
         }
         button {
             background-color: #007bff;
@@ -63,18 +63,33 @@
             display: block;
             margin-top: 20px;
             max-width: 400px;
-          margin: auto;
+            margin: auto;
         }
-        p {
-            font-size: 14px;
-            color: #555;
-        }
-        .icon-button {
+        .file-item {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background-color: #32A350;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        .file-item span {
+            text-align: left;
+            flex-grow: 1;
+        }
+        .file-item button {
+            background-color: #28a745;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+            color: white;
+            border: none;
+            width: 100px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .file-item button:hover {
+            background-color: #218838;
         }
     </style>
 </head>
@@ -83,7 +98,7 @@
     <h1>Rogers Cheatsheet</h1>
     <h4>Fichiers disponibles :</h4>
     <div id="file-list">Chargement des fichiers...</div>
-    <button onclick="downloadAllPNGs()"><i class="fa-solid fa-download"></i>  Télécharger les PNG</button>
+    <button onclick="downloadAllPNGs()"><i class="fa-solid fa-download"></i>  Tout télécharger</button>
     <button class="icon-button" onclick="window.open('https://docs.google.com/spreadsheets/d/1KVEx-Giqpvjkb8050YTb5XxHK2g9nsUCkQSA2llUrCY/edit?usp=sharing', '_blank')">
         <i class="fas fa-table"></i> Cheatsheet
     </button>
@@ -107,7 +122,12 @@
 
         function displayFiles(files) {
             const fileList = document.getElementById("file-list");
-            fileList.innerHTML = files.map(file => `<p>${file.name}</p>`).join('');
+            fileList.innerHTML = files.map(file => `
+                <div class="file-item">
+                    <span>${file.name}</span>
+                    <button onclick="convertToPNG('${file.id}', '${file.name}')"><i class="fa-solid fa-download"></i> PNG</button>
+                </div>
+            `).join('');
         }
 
         async function convertToPNG(fileId, fileName) {
